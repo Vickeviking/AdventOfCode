@@ -1,0 +1,11 @@
+[workspace]
+members = [
+    "day01A", "day01B", "day02A",
+]
+
+
+[build]
+rustflags = [
+  "-C", "debuginfo=2",
+  "-C", "split-debuginfo=unpacked"
+]
