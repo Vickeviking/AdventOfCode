@@ -8,7 +8,7 @@ use std::{
 fn digits_u64(mut n: u64, out: &mut [u8; 20]) -> usize {
     if n == 0 {
         out[0] = 0;
-        return 0;
+        return 1;
     }
 
     let mut len = 0;
@@ -36,23 +36,30 @@ fn validate(line: String) -> u64 {
 
         for id in a..=b {
             let len = digits_u64(id, &mut buf);
-            let hlen = len / 2;
-            // if number contains an odd amount of digits, it has to be valid
-            if len % 2 == 1 {
-                continue;
-            }
+            // min number of windows can be 2 up to len,
+            // resulting in n/win_n window length
+            for win_num in 2..=len {
+                if len.is_multiple_of(win_num) {
+                    // only if win len is a divisor can i tbe valid
+                    let mut fits = true;
+                    //check all windows against the first one for each index
+                    let win_len = len / win_num;
 
-            // now walk for len/2 , until buf[i] != i + len/2
-            let mut is_valid = false;
-            for i in 0..hlen {
-                if buf[i] != buf[i + hlen] {
-                    is_valid = true;
-                    break;
+                    for index in 0..win_len {
+                        for win_offset in 1..win_num {
+                            //check all windows against the first one
+                            if buf[index] != buf[(win_len * win_offset) + index] {
+                                fits = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    if fits {
+                        invalid_id_sum += id;
+                        break;
+                    }
                 }
-            }
-
-            if !is_valid {
-                invalid_id_sum += id;
             }
         }
     }
@@ -61,7 +68,7 @@ fn validate(line: String) -> u64 {
 }
 
 fn main() -> io::Result<()> {
-    let file = File::open("day02A/src/input.txt")?;
+    let file = File::open("day02B/src/input.txt")?;
     let reader = io::BufReader::new(file);
 
     let line: String = reader.lines().next().unwrap()?;
@@ -78,7 +85,7 @@ mod tests {
     #[test]
     fn test_digits_u64() {
         let mut buf = [0u8; 20];
-        assert!(digits_u64(0, &mut buf) == 0);
+        assert!(digits_u64(0, &mut buf) == 1);
         assert!(digits_u64(12, &mut buf) == 2);
         assert!(digits_u64(123, &mut buf) == 3);
         assert!(digits_u64(1234, &mut buf) == 4);
@@ -95,23 +102,8 @@ mod tests {
 
     #[test]
     fn validate_super_simple() {
-        let s = "11-22,95-115".to_string();
+        let s = "2121212118-2121212124".to_string();
 
-        assert!(validate(s) == 132)
-    }
-
-    #[test]
-    fn validate_simple() {
-        let s = "11-22,95-115,998-1012".to_string();
-
-        assert!(validate(s) == 1142)
-    }
-
-    #[test]
-    fn validate_real() {
-        let s = "11-22,95-115,998-1012,1188511880-1188511890,222220-222224,1698522-1698528,446443-446449,38593856-38593862,565653-565659,824824821-824824827,2121212118-2121212124"
-            .to_string();
-
-        assert!(validate(s) == 1227775554)
+        assert!(validate(s) == 2121212121)
     }
 }
