@@ -1,0 +1,20 @@
+[package]
+name = "advent-of-code"
+version = "0.1.0"
+edition = "2021"
+default-run = "aoc"
+
+[[bin]]
+name = "aoc"
+path = "src/main.rs"
+
+[[bin]]
+name = "add_day"
+path = "src/bin/add_day.rs"
+
+[lib]
+name = "advent_of_code"
+path = "src/lib.rs"
+
+[dependencies]
+paste = "1.0"
