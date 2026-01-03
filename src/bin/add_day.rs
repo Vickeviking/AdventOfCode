@@ -41,6 +41,9 @@ fn create_day_files(year: &str, day: u8) -> Result<(), String> {
         return Err(format!("Source file already exists: {}", src_path));
     }
     
+    // Check if this is a new year
+    let is_new_year = !Path::new(&src_dir).exists();
+    
     fs::create_dir_all(&src_dir).map_err(|e| format!("Failed to create directory: {}", e))?;
     
     let template = format!(
@@ -124,8 +127,69 @@ mod tests {{
         fs::write(&input_path, "").map_err(|e| format!("Failed to create input file: {}", e))?;
     }
     
-    // Update main.rs get_YEAR_solution function
+    // If new year, update lib.rs to add the module declaration
+    if is_new_year {
+        update_lib_rs(year)?;
+    }
+    
+    // Update main.rs to register the solution
     update_main_rs(year, day)?;
+    
+    Ok(())
+}
+
+fn update_lib_rs(year: &str) -> Result<(), String> {
+    let lib_path = "src/lib.rs";
+    let content = fs::read_to_string(lib_path)
+        .map_err(|e| format!("Failed to read lib.rs: {}", e))?;
+    
+    let year_mod = format!("pub mod y{};", year);
+    
+    // Check if already declared
+    if content.contains(&year_mod) {
+        return Ok(());
+    }
+    
+    // Find where to insert (after other pub mod declarations)
+    let lines: Vec<&str> = content.lines().collect();
+    let mut new_lines = Vec::new();
+    let mut inserted = false;
+    
+    for line in lines {
+        new_lines.push(line.to_string());
+        // Insert after the last pub mod line
+        if line.starts_with("pub mod y") && !inserted {
+            // Keep collecting pub mod lines
+            continue;
+        } else if !line.starts_with("pub mod") && !inserted && new_lines.iter().any(|l| l.starts_with("pub mod")) {
+            // We've passed all pub mod lines, insert before this line
+            new_lines.insert(new_lines.len() - 1, year_mod.clone());
+            inserted = true;
+        }
+    }
+    
+    // If we didn't insert yet, append at the end
+    if !inserted {
+        new_lines.push(year_mod);
+    }
+    
+    // Sort the pub mod lines
+    let mut mod_lines: Vec<String> = new_lines.iter()
+        .filter(|l| l.starts_with("pub mod y"))
+        .map(|s| s.to_string())
+        .collect();
+    mod_lines.sort();
+    
+    // Rebuild content
+    let other_lines: Vec<String> = new_lines.iter()
+        .filter(|l| !l.starts_with("pub mod y"))
+        .map(|s| s.to_string())
+        .collect();
+    
+    let final_content = other_lines.join("\n") + "\n" + &mod_lines.join("\n") + "\n";
+    
+    fs::write(lib_path, final_content)
+        .map_err(|e| format!("Failed to update lib.rs: {}", e))?;
     
     Ok(())
 }
@@ -135,26 +199,60 @@ fn update_main_rs(year: &str, day: u8) -> Result<(), String> {
     let content = fs::read_to_string(main_path)
         .map_err(|e| format!("Failed to read main.rs: {}", e))?;
     
-    let func_name = format!("fn get_{}_solution(day: u8)", year);
+    // Check if the year case exists
+    let year_case = format!("\"{}\" => match day {{", year);
     
-    // Find the function and check if day is already added
-    if let Some(func_start) = content.find(&func_name) {
-        let func_section = &content[func_start..];
-        let case_str = format!("{} => Some(Box::new(y{}::day{:02}::Day{:02}))", day, year, day, day);
+    if !content.contains(&year_case) {
+        // Need to add the entire year case
+        return add_year_to_main(year, day);
+    }
+    
+    // Year exists, check if day is already registered
+    let day_case = format!("{} => Box::new(advent_of_code::y{}::day{:02}::Day{:02})", day, year, day, day);
+    if content.contains(&day_case) {
+        return Ok(()); // Already registered
+    }
+    
+    // Find the year's match block and add the day
+    let year_start = content.find(&year_case).unwrap();
+    let after_year = &content[year_start..];
+    
+    // Find the year's panic line - it uses format parameters, not the literal year
+    let panic_pattern = "_ => panic!(\"Day {} not registered for year {}\", day, year)";
+    if let Some(panic_pos) = after_year.find(panic_pattern) {
+        let insert_pos = year_start + panic_pos;
+        let new_day = format!("            {} => Box::new(advent_of_code::y{}::day{:02}::Day{:02}),\n            ", day, year, day, day);
+        let new_content = format!("{}{}{}", &content[..insert_pos], new_day, &content[insert_pos..]);
         
-        if func_section.contains(&case_str) {
-            return Ok(()); // Already added
-        }
+        fs::write(main_path, new_content)
+            .map_err(|e| format!("Failed to update main.rs: {}", e))?;
+    }
+    
+    Ok(())
+}
+
+fn add_year_to_main(year: &str, day: u8) -> Result<(), String> {
+    let main_path = "src/main.rs";
+    let content = fs::read_to_string(main_path)
+        .map_err(|e| format!("Failed to read main.rs: {}", e))?;
+    
+    // Find where to insert the new year (before the final _ => panic!)
+    let final_panic = "_ => panic!(\"Year {} not registered\", year)";
+    
+    if let Some(insert_pos) = content.find(final_panic) {
+        let new_year_case = format!(
+r#"        "{}" => match day {{
+            {} => Box::new(advent_of_code::y{}::day{:02}::Day{:02}),
+            _ => panic!("Day {{}} not registered for year {{}}", day, year),
+        }},
+        "#,
+            year, day, year, day, day
+        );
         
-        // Find the end of the match statement (before the last _ => None)
-        if let Some(default_case_pos) = func_section.find("_ => None,") {
-            let insert_pos = func_start + default_case_pos;
-            let new_case = format!("        {} => Some(Box::new(y{}::day{:02}::Day{:02})),\n        ", day, year, day, day);
-            let new_content = format!("{}{}{}", &content[..insert_pos], new_case, &content[insert_pos..]);
-            
-            fs::write(main_path, new_content)
-                .map_err(|e| format!("Failed to update main.rs: {}", e))?;
-        }
+        let new_content = format!("{}{}{}", &content[..insert_pos], new_year_case, &content[insert_pos..]);
+        
+        fs::write(main_path, new_content)
+            .map_err(|e| format!("Failed to update main.rs: {}", e))?;
     }
     
     Ok(())

@@ -1,20 +1,20 @@
 use crate::Solution;
 
-pub struct Day04;
+pub struct Day02;
 
-impl Solution for Day04 {
+impl Solution for Day02 {
     fn part_a(&self) -> String {
-        let input = include_str!("../../inputs/2015/day04.txt");
+        let input = include_str!("../../inputs/2018/day02.txt");
         solve_part_a(input).to_string()
     }
 
     fn part_b(&self) -> String {
-        let input = include_str!("../../inputs/2015/day04.txt");
+        let input = include_str!("../../inputs/2018/day02.txt");
         solve_part_b(input).to_string()
     }
 
     fn day(&self) -> u8 {
-        4
+        2
     }
 }
 

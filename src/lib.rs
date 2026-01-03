@@ -2,10 +2,10 @@
 pub trait Solution {
     /// Run part A of the solution
     fn part_a(&self) -> String;
-    
+
     /// Run part B of the solution
     fn part_b(&self) -> String;
-    
+
     /// Get the day number
     fn day(&self) -> u8;
 }
@@ -39,4 +39,8 @@ macro_rules! solution {
 }
 
 pub mod y2015;
+pub mod y2016;
+pub mod y2017;
+pub mod y2018;
+pub mod y2019;
 pub mod y2025;
