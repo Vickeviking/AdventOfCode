@@ -94,6 +94,15 @@ fn get_solution(year: &str, day: u8) -> Box<dyn Solution> {
                         2 => Box::new(advent_of_code::y2019::day02::Day02),
             _ => panic!("Day {} not registered for year {}", day, year),
         },
+                "2020" => match day {
+            1 => Box::new(advent_of_code::y2020::day01::Day01),
+                        2 => Box::new(advent_of_code::y2020::day02::Day02),
+                        3 => Box::new(advent_of_code::y2020::day03::Day03),
+                        4 => Box::new(advent_of_code::y2020::day04::Day04),
+                        5 => Box::new(advent_of_code::y2020::day05::Day05),
+                        6 => Box::new(advent_of_code::y2020::day06::Day06),
+            _ => panic!("Day {} not registered for year {}", day, year),
+        },
         _ => panic!("Year {} not registered", year),
     }
 }

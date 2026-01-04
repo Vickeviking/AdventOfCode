@@ -18,9 +18,10 @@ impl Solution for Day01 {
     }
 }
 
-fn solve_part_a(_input: &str) -> i32 {
-    // TODO: Implement part A
-    0
+fn solve_part_a(input: &str) -> i32 {
+    let strings: Vec<&str> = input.split("/n").collect();
+    println!("{:?}", strings);
+    return strings.len() as i32;
 }
 
 fn solve_part_b(_input: &str) -> i32 {
@@ -34,8 +35,13 @@ mod tests {
 
     #[test]
     fn test_part_a() {
-        let input = "test input";
-        assert_eq!(solve_part_a(input), 0);
+        let input = "1721
+979
+366
+299
+675
+1456";
+        assert_eq!(solve_part_a(input), 514579);
     }
 
     #[test]
