@@ -1,5 +1,3 @@
-use std::{collections::HashSet, u32};
-
 use crate::Solution;
 
 pub struct Day06;
@@ -20,16 +18,19 @@ impl Solution for Day06 {
     }
 }
 
-fn solve_part_a(input: &str) -> usize {
+fn solve_part_a(input: &str) -> u32 {
     let mut count = 0;
     for group in input.split("\n\n") {
-        let mut set = HashSet::new();
+        let mut group_bitmap: u32 = 0;
         for person in group.lines() {
+            let mut person_bitmap: u32 = 0;
             for c in person.chars() {
-                set.insert(c);
+                let mask = (c as u8 - b'a') as usize;
+                person_bitmap ^= 1 << mask;
             }
+            group_bitmap |= person_bitmap;
         }
-        count += set.len();
+        count += group_bitmap.count_ones();
     }
 
     count
