@@ -30,7 +30,7 @@ fn solve_part_a(input: &str) -> i32 {
 
     let mut current_width = 0;
     let mut trees = 0;
-    for (y, row) in map.iter().enumerate() {
+    for (y, _) in map.iter().enumerate() {
         if y % stepsize_y != 0 {
             continue;
         }
@@ -53,7 +53,7 @@ fn solve_part_b(input: &str) -> u64 {
 
         let mut current_width = 0;
         let mut trees = 0;
-        for (y, row) in map.iter().enumerate() {
+        for (y, _) in map.iter().enumerate() {
             if y % stepsize_y != 0 {
                 continue;
             }

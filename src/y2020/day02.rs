@@ -1,5 +1,4 @@
 use core::{error, fmt};
-use std::str::FromStr;
 
 use crate::Solution;
 

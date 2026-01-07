@@ -60,10 +60,8 @@ fn solve_part_b(input: &str) -> usize {
         .nth(1)
         .unwrap()
         .split(',')
-        .collect::<Vec<&str>>()
-        .iter()
         .enumerate()
-        .filter_map(|(idx, &num)| {
+        .filter_map(|(idx, num)| {
             if num != "x" {
                 Some((idx, num.parse::<u32>().unwrap()))
             } else {

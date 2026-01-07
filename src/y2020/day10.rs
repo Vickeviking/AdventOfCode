@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use crate::Solution;
 
 pub struct Day10;
@@ -33,7 +31,7 @@ fn solve_part_a(input: &str) -> usize {
     joltages.push(0);
     joltages.sort();
 
-    for i in (1..joltages.len()) {
+    for i in 1..joltages.len() {
         match joltages[i] - joltages[i - 1] {
             1 => one_joltage_dif += 1,
             3 => three_joltage_dif += 1,
@@ -60,7 +58,7 @@ fn solve_part_b(input: &str) -> usize {
         }
 
         let mut sum = 0;
-        for i in (1..=3) {
+        for i in 1..=3 {
             if let Some(j) = index.checked_sub(i) {
                 // Safety, subtractions only ever access earlier elements, we never exceed right bound
 
